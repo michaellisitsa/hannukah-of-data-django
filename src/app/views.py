@@ -3,6 +3,7 @@ import datetime
 from django.shortcuts import render
 from django.db import Error, connection
 from app.models import Customer, Order, OrdersItem
+from django.db.models import Q
 
 # Phone keyboard translation layer
 letters_to_numbers = str.maketrans(
@@ -44,4 +45,58 @@ def day02(request):
                         return render(request, "output.html", {"customer": customer})
             else:
                 pass
-            return render(request, "output.html", {"customer": None})
+    print("fall through should not be hit")
+    return render(request, "output.html", {"customer": None})
+
+
+def day02_alt(request):
+    # Use smarter filtering to narrow down the list
+    # instead of looping. This reduces the number of queries to
+    customers = list(
+        Customer.objects.filter(
+            name__regex=r"^J[a-z]+ P[a-z]+",
+        ).values_list("customerid", flat=True)
+    )
+
+    orders = list(
+        Order.objects.filter(
+            ordered__gte=datetime.date(2017, 1, 1),
+            ordered__lte=datetime.date(2017, 12, 31),
+            # Use a custom regex matcher instead of finding individuals with initials
+            customerid__in=customers,
+        ).values_list("orderid", flat=True)
+    )
+
+    orders_items = OrdersItem.objects.filter(
+        # search for cleaning products (homeware)
+        sku__startswith="HOM",
+        orderid__in=orders,
+    )
+    print(connection.queries)
+
+    if len(orders_items) > 0:
+        # The problem is without the foreign key, we can't navigate back up.
+        # Instead we need to manually climb back up.
+        orders = Order.objects.filter(orderid=orders_items.first().orderid)
+        customer = Customer.objects.filter(customerid=orders.first().customerid)
+        return render(request, "output.html", {"customer": customer.first()})
+    print("fall through should not be hit")
+    return render(request, "output.html", {"customer": None})
+
+
+def day03(request):
+    years_of_rabbit = [2035, 2023, 2011, 1999, 1987, 1975, 1963, 1951, 1939, 1927]
+    customers = Customer.objects.filter(
+        # Narrow down cancer in year of the rabbit
+        Q(birthdate__year__in=years_of_rabbit)
+        & (
+            (Q(birthdate__month="06") & Q(birthdate__day__gte=22))
+            | (Q(birthdate__month="07") & Q(birthdate__day__lte=22))
+        )
+        # narow down to the same city as the customer from day 02
+    ).filter(citystatezip__exact="Jamaica, NY 11435")
+    if len(customers) == 0:
+        print("could not find customer with a cancer birthdate in 2011")
+        return render(request, "output.html", {"customer": None})
+    else:
+        return render(request, "output.html", {"customer": customers.first()})

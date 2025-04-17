@@ -23,4 +23,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("day01/", views.day01, name="day01"),
     path("day02/", views.day02, name="day02"),
+    path("day02_alt/", views.day02_alt, name="day02_alt"),
+    path("day03/", views.day03, name="day03"),
 ]
