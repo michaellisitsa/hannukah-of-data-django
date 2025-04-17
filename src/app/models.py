@@ -12,7 +12,7 @@ class Customer(models.Model):
     name = models.CharField()
     address = models.CharField()
     citystatezip = models.CharField()
-    birthdate = models.CharField()
+    birthdate = models.DateField()
     phone = models.CharField()
     timezone = models.CharField()
     lat = models.DecimalField(
