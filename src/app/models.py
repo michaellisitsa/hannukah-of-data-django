@@ -19,7 +19,7 @@ class Customer(models.Model):
         max_digits=10, decimal_places=5
     )  # max_digits and decimal_places have been guessed, as this database handles decimal fields as float
     long = models.DecimalField(
-        max_digits=10, decimal_places=5
+        max_digits=10, decimal_places=5, blank=True, null=True
     )  # max_digits and decimal_places have been guessed, as this database handles decimal fields as float
 
     class Meta:
