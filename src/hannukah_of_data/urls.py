@@ -22,4 +22,5 @@ from app import views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("day01/", views.day01, name="day01"),
+    path("day02/", views.day02, name="day02"),
 ]

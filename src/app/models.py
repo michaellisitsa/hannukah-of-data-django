@@ -42,7 +42,7 @@ class Order(models.Model):
 
 
 class OrdersItem(models.Model):
-    # pk = models.CompositePrimaryKey("orderid", "sku")
+    pk = models.CompositePrimaryKey("orderid", "sku")
     orderid = models.IntegerField()
     sku = models.CharField()
     qty = models.IntegerField()
