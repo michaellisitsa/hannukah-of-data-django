@@ -2,7 +2,7 @@ import datetime
 
 from django.shortcuts import render
 from django.db import Error, connection
-from app.models import Customer, Order, OrdersItem
+from app.models import Customer, Order, OrdersItem, Product
 from django.db.models import Q
 
 # Phone keyboard translation layer
@@ -20,6 +20,7 @@ def day01(request):
         phone = customer.phone.replace("-", "")
         if phone == digits:
             return render(request, "output.html", {"customer": customer})
+    return render(request, "output.html", {"customer": None})
 
 
 def day02(request):
@@ -100,3 +101,23 @@ def day03(request):
         return render(request, "output.html", {"customer": None})
     else:
         return render(request, "output.html", {"customer": customers.first()})
+
+
+def day04(request):
+    early_orders = Order.objects.filter(
+        # Before dawn, she was at the house by 5
+        ordered__hour__lte=5,
+        ordered__hour__gte=3,
+    ).order_by("ordered__hour", "ordered__minute")
+    early_orders_list = list(early_orders.values_list("orderid", flat=True))
+
+    orders_items = OrdersItem.objects.filter(
+        orderid__in=early_orders_list, sku__startswith="BKY"
+    )
+    # Down to <100 entries of bakery goods that were ordered between 3 and 5 am
+    # TODO: Figure out how to limit this list more.
+    # - limit to dates before 2020 when the rug was down
+    # - limit to females
+    # - limit to more than 2 items on the order (as puzzle mentioned multiple)
+
+    return render(request, "output.html", {"customer": None})
