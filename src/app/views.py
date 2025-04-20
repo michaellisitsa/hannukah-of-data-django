@@ -3,7 +3,7 @@ import datetime
 from django.shortcuts import render
 from django.db import Error, connection
 from app.models import Customer, Order, OrdersItem, Product
-from django.db.models import Q
+from django.db.models import Q, F, CharField, OuterRef, Subquery, ForeignKey
 
 # Phone keyboard translation layer
 letters_to_numbers = str.maketrans(
@@ -53,27 +53,28 @@ def day02(request):
 def day02_alt(request):
     # Use smarter filtering to narrow down the list
     # instead of looping. This reduces the number of queries to
-    customers = list(
-        Customer.objects.filter(
-            name__regex=r"^J[a-z]+ P[a-z]+",
-        ).values_list("customerid", flat=True)
-    )
-
+    customer_annotation = Customer.objects.filter(customerid=OuterRef("customerid"))
     orders = list(
-        Order.objects.filter(
+        # This annotation is a hacky way to get around the sql not having a
+        # foreign key relationship. It is slow
+        Order.objects.annotate(
+            customername=Subquery(
+                customer_annotation[:1].values("name"), output_field=CharField()
+            )
+        )
+        .filter(
             ordered__gte=datetime.date(2017, 1, 1),
             ordered__lte=datetime.date(2017, 12, 31),
             # Use a custom regex matcher instead of finding individuals with initials
-            customerid__in=customers,
-        ).values_list("orderid", flat=True)
+            customername__regex=r"^J[a-z]+ P[a-z]+",
+        )
+        .values_list("orderid", flat=True)
     )
-
     orders_items = OrdersItem.objects.filter(
         # search for cleaning products (homeware)
         sku__startswith="HOM",
         orderid__in=orders,
     )
-    print(connection.queries)
 
     if len(orders_items) > 0:
         # The problem is without the foreign key, we can't navigate back up.
