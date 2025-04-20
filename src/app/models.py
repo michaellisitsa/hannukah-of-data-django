@@ -31,6 +31,7 @@ class Relationship(models.ForeignObject):
         # override the default to always make it private
         # this ensures that no additional columns are created
         super().contribute_to_class(cls, name, private_only=True, **kwargs)
+        # setattr(cls, self.name, self.forward_related_accessor_class(self))
 
 
 class Customer(models.Model):
@@ -60,7 +61,7 @@ class Order(models.Model):
         "Customer",
         from_fields=["customerid"],
         to_fields=["customerid"],
-        related_name="customers",
+        related_name="orders",
     )
     ordered = models.DateTimeField()  # This field type is a guess.
     shipped = models.DateTimeField()  # This field type is a guess.
@@ -84,7 +85,7 @@ class OrdersItem(models.Model):
     )
     sku = models.CharField()
     sku_reference = Relationship(
-        "Product", from_fields=["sku"], to_fields=["sku"], related_name="products"
+        "Product", from_fields=["sku"], to_fields=["sku"], related_name="orders_items"
     )
     qty = models.IntegerField()
     unit_price = models.DecimalField(
