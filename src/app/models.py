@@ -57,7 +57,10 @@ class Order(models.Model):
 
     customerid = models.CharField()
     customer_reference = Relationship(
-        "Customer", from_fields=["customerid"], to_fields=["customerid"]
+        "Customer",
+        from_fields=["customerid"],
+        to_fields=["customerid"],
+        related_name="customers",
     )
     ordered = models.DateTimeField()  # This field type is a guess.
     shipped = models.DateTimeField()  # This field type is a guess.
@@ -74,10 +77,15 @@ class OrdersItem(models.Model):
     pk = models.CompositePrimaryKey("orderid", "sku")
     orderid = models.IntegerField()
     order_reference = Relationship(
-        "Order", from_fields=["orderid"], to_fields=["orderid"]
+        "Order",
+        from_fields=["orderid"],
+        to_fields=["orderid"],
+        related_name="orders_items",
     )
     sku = models.CharField()
-    sku_reference = Relationship("Product", from_fields=["sku"], to_fields=["sku"])
+    sku_reference = Relationship(
+        "Product", from_fields=["sku"], to_fields=["sku"], related_name="products"
+    )
     qty = models.IntegerField()
     unit_price = models.DecimalField(
         max_digits=10, decimal_places=5, blank=True, null=True

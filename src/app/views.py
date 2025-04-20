@@ -3,7 +3,7 @@ import datetime
 from django.shortcuts import render
 from django.db import Error, connection
 from app.models import Customer, Order, OrdersItem, Product
-from django.db.models import Q
+from django.db.models import Q, Count
 
 # Phone keyboard translation layer
 letters_to_numbers = str.maketrans(
@@ -122,20 +122,29 @@ def day03(request):
 
 
 def day04(request):
-    early_orders = Order.objects.filter(
-        # Before dawn, she was at the house by 5
-        ordered__hour__lte=5,
-        ordered__hour__gte=3,
-    ).order_by("ordered__hour", "ordered__minute")
+    early_orders = (
+        Order.objects.annotate(n_orders=Count("orders_items"))
+        .filter(
+            # Before dawn, she was at the house by 5
+            ordered__hour__lte=5,
+            ordered__hour__gte=3,
+            # More than 2 were found
+            n_orders__gte=2,
+            ordered__year__lte=2019,
+        )
+        .order_by("ordered__hour", "ordered__minute")
+    )
+
     early_orders_list = list(early_orders.values_list("orderid", flat=True))
 
     orders_items = OrdersItem.objects.filter(
         orderid__in=early_orders_list, sku__startswith="BKY"
     )
-    # Down to <100 entries of bakery goods that were ordered between 3 and 5 am
+    # Down to <35 entries of bakery goods that were ordered between 3 and 5 am
+    print("how many items: ", orders_items.count())
     # TODO: Figure out how to limit this list more.
-    # - limit to dates before 2020 when the rug was down
     # - limit to females
-    # - limit to more than 2 items on the order (as puzzle mentioned multiple)
+    # - Filter to only the earliest item of any day in that range
+    # - Filter to more than 2 bakery items within a single order, rather than just 2 items which may include a bakery item
 
     return render(request, "output.html", {"customer": None})
