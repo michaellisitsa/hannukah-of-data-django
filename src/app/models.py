@@ -7,6 +7,32 @@
 from django.db import models
 
 
+class Relationship(models.ForeignObject):
+    """
+    Create a django link between models on a field where a foreign key isn't used.
+    This class allows that link to be realised through a proper relationship,
+    allowing prefetches and select_related.
+    Attribution to blog
+    https://devblog.kogan.com/blog/custom-relationships-in-django
+    """
+
+    def __init__(self, model, from_fields, to_fields, **kwargs):
+        super().__init__(
+            model,
+            on_delete=models.DO_NOTHING,
+            from_fields=from_fields,
+            to_fields=to_fields,
+            null=True,
+            blank=True,
+            **kwargs,
+        )
+
+    def contribute_to_class(self, cls, name, private_only=False, **kwargs):
+        # override the default to always make it private
+        # this ensures that no additional columns are created
+        super().contribute_to_class(cls, name, private_only=True, **kwargs)
+
+
 class Customer(models.Model):
     customerid = models.IntegerField(primary_key=True)
     name = models.CharField()
@@ -30,6 +56,9 @@ class Order(models.Model):
     orderid = models.CharField(primary_key=True)
 
     customerid = models.CharField()
+    customer_reference = Relationship(
+        "Customer", from_fields=["customerid"], to_fields=["customerid"]
+    )
     ordered = models.DateTimeField()  # This field type is a guess.
     shipped = models.DateTimeField()  # This field type is a guess.
     total = models.DecimalField(
@@ -44,7 +73,11 @@ class Order(models.Model):
 class OrdersItem(models.Model):
     pk = models.CompositePrimaryKey("orderid", "sku")
     orderid = models.IntegerField()
+    order_reference = Relationship(
+        "Order", from_fields=["orderid"], to_fields=["orderid"]
+    )
     sku = models.CharField()
+    sku_reference = Relationship("Product", from_fields=["sku"], to_fields=["sku"])
     qty = models.IntegerField()
     unit_price = models.DecimalField(
         max_digits=10, decimal_places=5, blank=True, null=True
