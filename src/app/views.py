@@ -91,7 +91,7 @@ def day02_fk(request):
         order_reference__ordered__gte=datetime.date(2017, 1, 1),
         order_reference__ordered__lte=datetime.date(2017, 12, 31),
         # Use a custom regex matcher instead of finding individuals with initials
-        order_reference__customer_reference__name__regex=r"^J[a-z]+ P[a-z]+",
+        order_reference__customer__name__regex=r"^J[a-z]+ P[a-z]+",
     ).filter(
         sku__startswith="HOM",
     )
@@ -99,7 +99,7 @@ def day02_fk(request):
     return render(
         request,
         "output.html",
-        {"customer": orders_items[0].order_reference.customer_reference},
+        {"customer": orders_items[0].order_reference.customer},
     )
 
 

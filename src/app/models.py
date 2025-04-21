@@ -57,11 +57,10 @@ class Order(models.Model):
     orderid = models.CharField(primary_key=True, db_index=True, unique=True)
 
     customerid = models.CharField()
-    customer_reference = Relationship(
-        "Customer",
-        from_fields=["customerid"],
-        to_fields=["customerid"],
-        related_name="orders",
+    # Identical copy of the above but with a foreign key constraint.
+    # Approach used in https://marcolcl.medium.com/converting-text-field-to-foreign-key-in-django-34e191845bbe
+    customer = models.ForeignKey(
+        Customer, on_delete=models.DO_NOTHING, related_name="orders_fk", null=True
     )
     ordered = models.DateTimeField()  # This field type is a guess.
     shipped = models.DateTimeField()  # This field type is a guess.
