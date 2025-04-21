@@ -35,7 +35,7 @@ class Relationship(models.ForeignObject):
 
 
 class Customer(models.Model):
-    customerid = models.IntegerField(primary_key=True)
+    customerid = models.IntegerField(primary_key=True, db_index=True, unique=True)
     name = models.CharField()
     address = models.CharField()
     citystatezip = models.CharField()
@@ -54,7 +54,7 @@ class Customer(models.Model):
 
 
 class Order(models.Model):
-    orderid = models.CharField(primary_key=True)
+    orderid = models.CharField(primary_key=True, db_index=True, unique=True)
 
     customerid = models.CharField()
     customer_reference = Relationship(
@@ -97,7 +97,7 @@ class OrdersItem(models.Model):
 
 
 class Product(models.Model):
-    sku = models.CharField(primary_key=True)
+    sku = models.CharField(primary_key=True, db_index=True, unique=True)
     desc = models.CharField(blank=True, null=True)
     wholesale_cost = models.DecimalField(
         max_digits=10, decimal_places=5, blank=True, null=True
