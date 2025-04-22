@@ -7,33 +7,6 @@
 from django.db import models
 
 
-class Relationship(models.ForeignObject):
-    """
-    Create a django link between models on a field where a foreign key isn't used.
-    This class allows that link to be realised through a proper relationship,
-    allowing prefetches and select_related.
-    Attribution to blog
-    https://devblog.kogan.com/blog/custom-relationships-in-django
-    """
-
-    def __init__(self, model, from_fields, to_fields, **kwargs):
-        super().__init__(
-            model,
-            on_delete=models.DO_NOTHING,
-            from_fields=from_fields,
-            to_fields=to_fields,
-            null=True,
-            blank=True,
-            **kwargs,
-        )
-
-    def contribute_to_class(self, cls, name, private_only=False, **kwargs):
-        # override the default to always make it private
-        # this ensures that no additional columns are created
-        super().contribute_to_class(cls, name, private_only=True, **kwargs)
-        # setattr(cls, self.name, self.forward_related_accessor_class(self))
-
-
 class Customer(models.Model):
     customerid = models.IntegerField(primary_key=True, db_index=True, unique=True)
     name = models.CharField()
@@ -48,6 +21,9 @@ class Customer(models.Model):
     long = models.DecimalField(
         max_digits=10, decimal_places=5, blank=True, null=True
     )  # max_digits and decimal_places have been guessed, as this database handles decimal fields as float
+
+    def count_orders_by_sku_type(self):
+        return self.orders_fk.filter(orders_items_fk__sku__startswith="BKY").count()
 
     class Meta:
         db_table = "customers"
@@ -73,28 +49,6 @@ class Order(models.Model):
         db_table = "orders"
 
 
-class OrdersItem(models.Model):
-    pk = models.CompositePrimaryKey("orderid", "sku")
-    orderid = models.IntegerField()
-    order_reference = Relationship(
-        "Order",
-        from_fields=["orderid"],
-        to_fields=["orderid"],
-        related_name="orders_items",
-    )
-    sku = models.CharField()
-    sku_reference = Relationship(
-        "Product", from_fields=["sku"], to_fields=["sku"], related_name="orders_items"
-    )
-    qty = models.IntegerField()
-    unit_price = models.DecimalField(
-        max_digits=10, decimal_places=5, blank=True, null=True
-    )  # max_digits and decimal_places have been guessed, as this database handles decimal fields as float
-
-    class Meta:
-        db_table = "orders_items"
-
-
 class Product(models.Model):
     sku = models.CharField(primary_key=True, db_index=True, unique=True)
     desc = models.CharField(blank=True, null=True)
@@ -105,3 +59,22 @@ class Product(models.Model):
 
     class Meta:
         db_table = "products"
+
+
+class OrdersItem(models.Model):
+    orderid = models.IntegerField()
+    # Identical copy of the above but with a foreign key constraint.
+    order = models.ForeignKey(
+        Order, on_delete=models.DO_NOTHING, related_name="orders_items_fk", null=True
+    )
+    sku = models.CharField()
+    product = models.ForeignKey(
+        Product, on_delete=models.DO_NOTHING, related_name="products_fk", null=True
+    )
+    qty = models.IntegerField()
+    unit_price = models.DecimalField(
+        max_digits=10, decimal_places=5, blank=True, null=True
+    )  # max_digits and decimal_places have been guessed, as this database handles decimal fields as float
+
+    class Meta:
+        db_table = "orders_items"

@@ -3,7 +3,7 @@ import datetime
 from django.shortcuts import render
 from django.db import Error, connection
 from app.models import Customer, Order, OrdersItem, Product
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Sum
 
 # Phone keyboard translation layer
 letters_to_numbers = str.maketrans(
@@ -122,29 +122,27 @@ def day03(request):
 
 
 def day04(request):
-    early_orders = (
-        Order.objects.annotate(n_orders=Count("orders_items"))
-        .filter(
-            # Before dawn, she was at the house by 5
-            ordered__hour__lte=5,
-            ordered__hour__gte=3,
-            # More than 2 were found
-            n_orders__gte=2,
-            ordered__year__lte=2019,
+    max_order_year = 2019
+    predawn_start = (
+        3  # consider things before 3 "still up" as opposed to getting up pre-dawn.
+    )
+    predawn_end = 5  # the problem told us she was at her Tinder friend's place by 5.
+    min_predawn_orders = 2  # She regularly attends, so at least twice
+    customers = (
+        Customer.objects.annotate(n_orders=Count("orders_fk"))
+        .filter(n_orders__gte=2)
+        .annotate(
+            pre_sunrise_bakery_orders=Count(
+                "orders_fk__pk",
+                filter=(
+                    Q(orders_fk__ordered__hour__gte=predawn_start)
+                    & Q(orders_fk__ordered__hour__lt=predawn_end)
+                    & Q(orders_fk__ordered__year__lte=max_order_year)
+                    & Q(orders_fk__orders_items_fk__sku__startswith="BKY")
+                ),
+            )
         )
-        .order_by("ordered__hour", "ordered__minute")
+        .filter(pre_sunrise_bakery_orders__gte=min_predawn_orders)
     )
-
-    early_orders_list = list(early_orders.values_list("orderid", flat=True))
-
-    orders_items = OrdersItem.objects.filter(
-        orderid__in=early_orders_list, sku__startswith="BKY"
-    )
-    # Down to <35 entries of bakery goods that were ordered between 3 and 5 am
-    print("how many items: ", orders_items.count())
-    # TODO: Figure out how to limit this list more.
-    # - limit to females
-    # - Filter to only the earliest item of any day in that range
-    # - Filter to more than 2 bakery items within a single order, rather than just 2 items which may include a bakery item
-
-    return render(request, "output.html", {"customer": None})
+    # This should get 4 customers, with the most bakery orders being the lucky bike fixer!
+    return render(request, "day04.html", {"customers": customers})

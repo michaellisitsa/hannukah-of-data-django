@@ -1,0 +1,9 @@
+<h1>Day 04: People with multiple bakery orders early in the morning</h1>
+<ul>
+  {% for customer in customers %}
+  <li>
+    {{ customer.name }} - {{ customer.phone }} - Count of orders:
+    {{customer.count_orders_by_sku_type}}
+  </li>
+  {% endfor %}
+</ul>
