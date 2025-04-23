@@ -28,4 +28,5 @@ urlpatterns = [
     path("day03/", views.day03, name="day03"),
     path("day04/", views.day04, name="day04"),
     path("day05/", views.day05, name="day05"),
+    path("day06/", views.day06, name="day06"),
 ]

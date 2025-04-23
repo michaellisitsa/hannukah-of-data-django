@@ -3,7 +3,7 @@ import datetime
 from django.shortcuts import render
 from django.db import Error, connection
 from app.models import Customer, Order, OrdersItem, Product
-from django.db.models import Q, Count, Sum
+from django.db.models import F, Q, Avg, Count, Sum
 
 # Phone keyboard translation layer
 letters_to_numbers = str.maketrans(
@@ -168,3 +168,18 @@ def day05(request):
     )
     # The first customer is male, so we get the 2nd
     return render(request, "output.html", {"customers": customers[1]})
+
+
+def day06(request):
+    customers = (
+        Customer.objects.annotate(
+            order_profit=Avg(
+                F("orders_fk__orders_items_fk__unit_price")
+                / F("orders_fk__orders_items_fk__product__wholesale_cost")
+                - 1
+            )
+        )
+        .exclude(order_profit=None)
+        .order_by("order_profit")
+    )
+    return render(request, "output.html", {"customers": customers.first()})
