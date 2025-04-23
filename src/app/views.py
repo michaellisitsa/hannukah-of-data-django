@@ -146,3 +146,26 @@ def day04(request):
     )
     # This should get 4 customers, with the most bakery orders being the lucky bike fixer!
     return render(request, "day04.html", {"customers": customers})
+
+
+def day05(request):
+    product_info = {
+        "descr": "cat",
+        "sku": "pet",
+    }
+    customer_info = {"location": "Queens Village"}
+    # Filter a customer by the the location
+    customers = Customer.objects.filter(
+        # filters to 40ish
+        citystatezip__startswith=customer_info["location"]
+    ).filter(
+        # filters to 30ish
+        orders_fk__orders_items_fk__sku__startswith="PET",
+        # filters to just under 30
+        orders_fk__orders_items_fk__product__desc__icontains="cat",
+    )
+    # TODO:
+    # Aggregate by the number of cat products for each customer
+    #   - This might be an annotation on the smaller subset of customers
+    #   - so we can re-use the data of the annotation
+    return render(request, "output.html", {"customer": None})

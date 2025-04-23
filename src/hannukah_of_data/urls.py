@@ -27,4 +27,5 @@ urlpatterns = [
     path("day02_fk/", views.day02_fk, name="day02_fk"),
     path("day03/", views.day03, name="day03"),
     path("day04/", views.day04, name="day04"),
+    path("day05/", views.day05, name="day05"),
 ]
