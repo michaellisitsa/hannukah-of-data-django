@@ -23,6 +23,7 @@ class Customer(models.Model):
     )  # max_digits and decimal_places have been guessed, as this database handles decimal fields as float
 
     def count_orders_by_sku_type(self):
+
         return self.orders_fk.filter(orders_items_fk__sku__startswith="BKY").count()
 
     class Meta:

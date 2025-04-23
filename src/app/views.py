@@ -149,23 +149,22 @@ def day04(request):
 
 
 def day05(request):
-    product_info = {
-        "descr": "cat",
-        "sku": "pet",
-    }
-    customer_info = {"location": "Queens Village"}
     # Filter a customer by the the location
-    customers = Customer.objects.filter(
-        # filters to 40ish
-        citystatezip__startswith=customer_info["location"]
-    ).filter(
-        # filters to 30ish
-        orders_fk__orders_items_fk__sku__startswith="PET",
-        # filters to just under 30
-        orders_fk__orders_items_fk__product__desc__icontains="cat",
+    customers = (
+        Customer.objects.filter(
+            # filters to 40ish
+            citystatezip__startswith="Staten Island"
+        )
+        .annotate(
+            n_cat_orders=Count(
+                "orders_fk__orders_items_fk",
+                filter=(
+                    Q(orders_fk__orders_items_fk__sku__startswith="PET")
+                    & Q(orders_fk__orders_items_fk__product__desc__icontains="cat")
+                ),
+            )
+        )
+        .order_by("-n_cat_orders")
     )
-    # TODO:
-    # Aggregate by the number of cat products for each customer
-    #   - This might be an annotation on the smaller subset of customers
-    #   - so we can re-use the data of the annotation
-    return render(request, "output.html", {"customer": None})
+    # The first customer is male, so we get the 2nd
+    return render(request, "output.html", {"customers": customers[1]})
