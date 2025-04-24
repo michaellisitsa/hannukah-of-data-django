@@ -39,6 +39,16 @@ cd src; poetry run python manage.py createsuperuser
 cd path/to/your/repo; eval $(poetry env activate);
 ```
 
+# Debugging
+
+1. Attach runserver to debugger
+
+```bash
+poetry run python  -m debugpy --listen 8888 --wait-for-client src/manage.py runserver
 ```
 
+2. Open your editor's dap client. e.g. nvim
+
+```vim
+:lua require("dap").continue()
 ```

@@ -3,9 +3,9 @@
     "model": "app.customer",
     "pk": 1,
     "fields": {
-      "name": "John adi",
+      "name": "Day01 adi",
       "address": "15 Queens",
-      "citystatezip": "VIC",
+      "citystatezip": "Melbourne, VIC, 3163",
       "phone": 234,
       "birthdate": "2014-03-12",
       "lat": 100,
@@ -16,11 +16,11 @@
     "model": "app.customer",
     "pk": 2,
     "fields": {
-      "name": "Ken Coster",
+      "name": "Day02 Coster",
       "address": "20 Victor St",
-      "citystatezip": "Melbourne",
+      "citystatezip": "Jamaica, NY 11435",
       "phone": 123,
-      "birthdate": "2012-05-22",
+      "birthdate": "1999-06-26",
       "lat": 101,
       "long": 108
     }
