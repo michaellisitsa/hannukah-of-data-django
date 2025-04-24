@@ -15,8 +15,11 @@ letters_to_numbers = str.maketrans(
 def day01(request):
     customers = Customer.objects.all()
     for customer in customers:
-        last_name = customer.name.split(" ")[1]
-        digits = last_name.upper().translate(letters_to_numbers)
+        name_parts = customer.name.split(" ")
+        if 1 > len(name_parts):
+            # Invalid info to determine last name matches
+            continue
+        digits = name_parts[-1].upper().translate(letters_to_numbers)
         phone = customer.phone.replace("-", "")
         if phone == digits:
             return render(request, "output.html", {"customer": customer})
